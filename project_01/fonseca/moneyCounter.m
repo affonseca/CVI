@@ -423,10 +423,12 @@ switch selectedButton
             color2 = uint8(hsv2rgb(i/handles.numberOfRegions, 1, 0.75) * 255);
             viscircles(centers(i,:), radii(i),'EdgeColor', color2);
 
-
+            color3 = uint8(hsv2rgb(i/handles.numberOfRegions, 0.75, 0.25) * 255);
             %drawing the region labels
             t = text(round(centers(i,1)), round(centers(i,2)), int2str(i));
-            t.FontSize = 30;
+            t.FontSize = 25;
+            t.Color = color3;
+            t.FontWeight = 'bold';
             t.HorizontalAlignment = 'center';
         end
 
@@ -439,8 +441,10 @@ switch selectedButton
         
         for i=1:handles.numberOfRegions
             %drawing the coin type
+            color = uint8(hsv2rgb(i/handles.numberOfRegions, 1, 0.2) * 255);
             t = text(round(centers(i,1)), round(centers(i,2)), coinsType(i));
             t.FontSize = 12;
+            t.FontWeight = 'bold';
             t.HorizontalAlignment = 'center';
         end
     otherwise
@@ -500,8 +504,8 @@ switch selectedButton
         coinProperties = coinProperties(:,[5 6]);
 end
 
-coinNames = {'1 cent'; '2 cents'; '5 cents'; '10 cents'; '20 cents';...
-    '50 cents'; '1€'};
+coinNames = {'1 Cent'; '2 Cents'; '5 Cents'; '10 Cents'; '20 Cents';...
+    '50 Cents'; '1 Euro'};
 nCoins = size(coinNames,1);
 regionProperties = cell2mat(regionProperties);
 
@@ -532,7 +536,7 @@ for i=1:nCoins
     undefinedRegions = undefinedRegions & matchingRegions;
     
     [coinValues{undefinedRegions,1}] = deal(coinNames{i,1});
-    [coinValues{definedRegions,1}] = deal('Type conflict');
+    [coinValues{definedRegions,1}] = deal('Type Conflict');
     
 end
 
@@ -564,8 +568,8 @@ function moneyCountTable_CellEditCallback(hObject, eventdata, handles)
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
 
-coinNames = {'1 cent'; '2 cents'; '5 cents'; '10 cents'; '20 cents';...
-    '50 cents'; '1€'};
+coinNames = {'1 Cent'; '2 Cents'; '5 Cents'; '10 Cents'; '20 Cents';...
+    '50 Cents'; '1 Euro'};
 nCoins = size(coinNames,1);
 coinValues = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1];
 coinsFound = handles.regionPropertiesTable.Data(:,6);
