@@ -441,7 +441,7 @@ switch selectedButton
         
         for i=1:handles.numberOfRegions
             %drawing the coin type
-            color = uint8(hsv2rgb(i/handles.numberOfRegions, 1, 0.2) * 255);
+            %color = uint8(hsv2rgb(i/handles.numberOfRegions, 1, 0.2) * 255);
             t = text(round(centers(i,1)), round(centers(i,2)), coinsType(i));
             t.FontSize = 12;
             t.FontWeight = 'bold';
