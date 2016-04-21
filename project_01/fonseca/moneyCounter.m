@@ -108,8 +108,8 @@ imshow(newImage);
 set(handles.imageText,'String',filename);
 
 %creating BW image using H from HSV image (better results)
-imgHSV = uint8(rgb2hsv(newImage)*255); 
-imgBW = imgHSV(:,:,1)<128;
+imgHSV = rgb2hsv(newImage); 
+imgBW = imgHSV(:,:,1)<0.25;
 
 %calculating region properties
 regionProperties = regionprops('table',imgBW, 'Area', 'Centroid',...
@@ -123,12 +123,17 @@ handles.regionMenu.Value = 1;
 text = num2str((1:numberOfLabels)');
 handles.regionMenu.String = text;
 
+%creating the coin name cell array
+coinNames = {'1 Cent'; '2 Cents'; '5 Cents'; '10 Cents'; '20 Cents';...
+    '50 Cents'; '1 Euro'};
+
 %saving all calculated information as handles
 handles.colorImage = newImage;
 handles.bwImage = imgBW;
 handles.labeledImage = labeledImage;
 handles.regionProperties = regionProperties;
 handles.numberOfRegions = numberOfLabels;
+handles.coinNames = coinNames;
 guidata(hObject,handles);
 
 %updating both region Table and display mode (called in table)
@@ -496,22 +501,53 @@ switch selectedButton
     case 'Area'
         regionProperties = regionProperties(:,1);
         coinProperties = coinProperties(:,[1 2]);
+        coinValues = getCoinTypes(handles.coinNames,coinValues,... 
+                                regionProperties, coinProperties);
     case 'Major Axis Length'
         regionProperties = regionProperties(:,4);
         coinProperties = coinProperties(:,[3 4]);
+        coinValues = getCoinTypes(handles.coinNames,coinValues,... 
+                                regionProperties, coinProperties);
     case 'Minor Axis Length'
         regionProperties = regionProperties(:,5);
         coinProperties = coinProperties(:,[5 6]);
+        coinValues = getCoinTypes(handles.coinNames,coinValues,... 
+                                regionProperties, coinProperties);
+    case 'All'
+        areaCoinValues = getCoinTypes(handles.coinNames,coinValues,... 
+                                regionProperties(:,1),... 
+                                coinProperties(:,[1 2]));
+        majorAxisCoinValues = getCoinTypes(handles.coinNames,coinValues,... 
+                                regionProperties(:,4),... 
+                                coinProperties(:,[3 4]));
+        minorAxisCoinValues = getCoinTypes(handles.coinNames,coinValues,... 
+                                regionProperties(:,5),... 
+                                coinProperties(:,[5 6]));
+        correctRegions = strcmp(areaCoinValues,majorAxisCoinValues) & ...
+                         strcmp(areaCoinValues,minorAxisCoinValues);
+                     
+        coinValues = areaCoinValues;
+        [coinValues{~correctRegions,1}] = deal('Property Conflict');
+        
 end
 
-coinNames = {'1 Cent'; '2 Cents'; '5 Cents'; '10 Cents'; '20 Cents';...
-    '50 Cents'; '1 Euro'};
+%finally restoring the new values to data
+handles.regionPropertiesTable.Data(:,6) = coinValues;
+
+%--------- UPDATE OTHER FUNCTIONS ---------%
+displayModeButtonGroup_SelectionChangedFcn(hObject, eventdata, handles);
+moneyCountTable_CellEditCallback(hObject, eventdata, handles);
+
+%to be used on table update to get the coin type
+function coinValues = getCoinTypes(coinNames, oldCoinValues, regionProperties, coinProperties)
+
+coinValues = oldCoinValues;
 nCoins = size(coinNames,1);
 regionProperties = cell2mat(regionProperties);
 
 %creating this array with the word 'Undefined' repeated n regions time
 %because we can only compare string cell arrays point to point -_-'
-paddedUndefined = cell(handles.numberOfRegions, 1);
+paddedUndefined = cell(size(regionProperties,1), 1);
 [paddedUndefined{:,1}] = deal('Undefined');
 
 %finding all values that correspond to a coin
@@ -537,16 +573,7 @@ for i=1:nCoins
     
     [coinValues{undefinedRegions,1}] = deal(coinNames{i,1});
     [coinValues{definedRegions,1}] = deal('Type Conflict');
-    
 end
-
-handles.regionPropertiesTable.Data(:,6) = coinValues;
-
-%finally restoring the new values to data
-
-%--------- UPDATE OTHER FUNCTIONS ---------%
-displayModeButtonGroup_SelectionChangedFcn(hObject, eventdata, handles);
-moneyCountTable_CellEditCallback(hObject, eventdata, handles);
 
 
 % --- Executes when selected object is changed in usePropertyButtonGroup.
@@ -568,8 +595,7 @@ function moneyCountTable_CellEditCallback(hObject, eventdata, handles)
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
 
-coinNames = {'1 Cent'; '2 Cents'; '5 Cents'; '10 Cents'; '20 Cents';...
-    '50 Cents'; '1 Euro'};
+coinNames = handles.coinNames;
 nCoins = size(coinNames,1);
 coinValues = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1];
 coinsFound = handles.regionPropertiesTable.Data(:,6);
