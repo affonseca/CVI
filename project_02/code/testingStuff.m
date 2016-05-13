@@ -6,7 +6,7 @@ function testingStuff()
     nFrames = vid.Duration * vid.FrameRate;
     %step = 20;
 
-    img = rgb2gray(readFrame(vid));
+    img = readFrame(vid);
     bkg = zeros(size(img));
 
     boxCounter = 0;
@@ -18,56 +18,62 @@ function testingStuff()
         alpha = 1/i; %each frame counts equally in the overral calculation
         %i
         img = readFrame(vid);
-        Y = rgb2gray(img);
+        Y = img;
 
         %showing original image
-        %subplot(2,2,1);
-        %imshow(img); 
-        %title('Original Image'); 
+        subplot(2,2,1);
+        imshow(img); 
+        title('Original Image'); 
 
         %calculating background estimation and image difference
         bkg = alpha * double(Y) + (1-alpha) * double(bkg);
         bkgImage = uint8(bkg); 
+        
         differenceImage = imabsdiff(Y,bkgImage);
-
+        
         %creating binary image
-        %subplot(2,2,2);
-        differenceImgBW = im2bw(differenceImage, 0.05);
-        %imshow(differenceImgBW);
-        %title('Binary Difference');
+        subplot(2,2,2);
+        differenceImgBW = ... 
+                    (im2bw(differenceImage(:,:,1), 0.05) | ...
+                    im2bw(differenceImage(:,:,2), 0.05) | ...
+                    im2bw(differenceImage(:,:,3), 0.05));
+        imshow(differenceImgBW);
+        title('Binary Difference');
 
         %using morphologic operations to reduce noise
-        %subplot(2,2,3);
+        subplot(2,2,3);
         %seOpen = strel('disk', 2);
         %seClose = strel('disk', 2);
         %transformedImage = imclose(imopen(transformedImage, seOpen), seClose);
         %transformedImage = imopen(differenceImgBW, seOpen);
-        transformedImage = medfilt2(differenceImgBW);
+        %transformedImage = medfilt2(differenceImgBW);
+        transformedImage = bwareaopen(differenceImgBW, 30);
         transformedImage = imfill(transformedImage, 'holes');
-        %imshow(transformedImage);
-        %title('Binary Difference Transformed');
+        imshow(transformedImage);
+        title('Binary Difference Transformed');
 
         %drawing the regions that were found
         regionProperties = regionprops('table',transformedImage,...
                                         'Area', 'Centroid', 'BoundingBox');
-        %subplot(2,2,4);
-        imshow(img); 
-        title('Original Image'); 
-
+        
         mergedBoxes = mergeBoxes(regionProperties.BoundingBox, 0.1);
         %only keeping boxes with an area bigger than threshold
         if(size(mergedBoxes,1) ~= 0)
             mergedBoxes = mergedBoxes(mergedBoxes(:,3).*mergedBoxes(:,4) > 500,:);
         end
+                
+        [newBoxesIds, mergeSplitData, boxCounter] = matchBoxes(...
+                    lastFrameBoxes, mergedBoxes, 0.6, boxCounter);
+        
+        subplot(2,2,4);
+        imshow(img); 
+        title('Movement Detection'); 
 
         nRegions = size(mergedBoxes,1);
         %drawing the final regions
         for j=1:nRegions
             rectangle('Position',mergedBoxes(j,:), 'EdgeColor', 'blue');
         end
-
-        [newBoxesIds, mergeSplitData, boxCounter] = matchBoxes(...
-                    lastFrameBoxes, mergedBoxes, 0.6, boxCounter);
 
         for j=1:nRegions
             box = mergedBoxes(j,:);
@@ -303,6 +309,6 @@ function area = getIntersectionArea(box1, box2)
         %no intersection
         return;
     end
-    intersectionBox = [max(box1(1:2),box2(1:2)) min(box1(3:4),box2(3:4))];
     
+    intersectionBox = [max(box1(1:2),box2(1:2)) min(box1(3:4),box2(3:4))];
     area = getArea(intersectionBox);

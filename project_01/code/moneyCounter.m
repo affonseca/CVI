@@ -93,7 +93,7 @@ function imageLoader_Callback(hObject, eventdata, handles)
     '*.TIFF','TIFF Files (*.TIFF)'},...    
     'MultiSelect', 'on');
 
-%checking if sonething was chosen
+%checking if something was chosen
 if(size(pathname,2) == 1)
     return
 end
