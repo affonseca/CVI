@@ -642,6 +642,9 @@ function detectMovement(hObject, handles, options, typeIdentifiers)
      %each frame counts equally in the overall calculation but lets add a
      %weight to it
     alpha = 1/iteration * options(1);
+    if(alpha > 1)
+        alpha = 1;
+    end
     Y = readFrame(video);
     
     background = alpha * double(Y) + (1-alpha) * double(background);
@@ -655,6 +658,8 @@ function detectMovement(hObject, handles, options, typeIdentifiers)
                     im2bw(differenceImage(:,:,2), bwThreshold) | ...
                     im2bw(differenceImage(:,:,3), bwThreshold));
                 
+    %seClose = strel('disk', 2);
+    %differenceImgBW = imclose(differenceImgBW, seClose);
     transformedImage = bwareaopen(differenceImgBW, options(3));
     transformedImage = imfill(transformedImage, 'holes');
     
