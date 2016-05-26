@@ -141,7 +141,6 @@ imshow(background);
 handles.playButton.Enable = 'on';
 handles.stopButton.Enable = 'on';
 handles.stepButton.Enable = 'on';
-handles.originalButton.Value = 1;
 
 %saving the starting information
 handles.pauseRun = 0;
@@ -652,7 +651,7 @@ function detectMovement(hObject, handles, options, typeIdentifiers)
     end
     Y = readFrame(video);
     
-    %background = alpha * double(Y) + (1-alpha) * double(background);
+    background = alpha * double(Y) + (1-alpha) * double(background);
     bkgImage = uint8(background); 
     
     differenceImage = imabsdiff(Y,bkgImage);
@@ -668,7 +667,7 @@ function detectMovement(hObject, handles, options, typeIdentifiers)
     se = strel('square', 5);
     differenceImgBW = imclose(differenceImgBW, se);
     transformedImage = bwareaopen(differenceImgBW, options(3));
-    transformedImage = imfill(transformedImage, 'holes');
+    %transformedImage = imfill(transformedImage, 'holes');
     
     regionProperties = regionprops('table',transformedImage,...
                                    'Area', 'Centroid', 'BoundingBox');
@@ -684,11 +683,8 @@ function detectMovement(hObject, handles, options, typeIdentifiers)
                 lastFrameBoxes, mergedBoxes, options(6)/100, boxCounter);
 
     axes(handles.videoAxes);
-    if handles.binaryButton.Value
-        imshow(transformedImage);
-    else
-        imshow(Y);
-    end
+    %imshow(Y); 
+    imshow(transformedImage);
 
     nRegions = size(mergedBoxes,1);
     %drawing the final regions
@@ -1039,7 +1035,7 @@ function originalButton_Callback(hObject, eventdata, handles)
 % hObject    handle to originalButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-  handles.binaryButton.Value = 0;
+  handles.Binary = False;
 % Hint: get(hObject,'Value') returns toggle state of originalButton
 
 
@@ -1048,5 +1044,5 @@ function binaryButton_Callback(hObject, eventdata, handles)
 % hObject    handle to binaryButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-  handles.originalButton.Value = 0;
+  handles.Binary = True;
 % Hint: get(hObject,'Value') returns toggle state of binaryButton
