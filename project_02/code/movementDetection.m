@@ -1,3 +1,4 @@
+
 function varargout = movementDetection(varargin)
 % MOVEMENTDETECTION MATLAB code for movementDetection.fig
 %      MOVEMENTDETECTION, by itself, creates a new MOVEMENTDETECTION or raises the existing
@@ -652,7 +653,7 @@ function detectMovement(hObject, handles, options, typeIdentifiers)
     end
     Y = readFrame(video);
     
-    %background = alpha * double(Y) + (1-alpha) * double(background);
+    background = alpha * double(Y) + (1-alpha) * double(background);
     bkgImage = uint8(background); 
     
     differenceImage = imabsdiff(Y,bkgImage);
@@ -664,10 +665,10 @@ function detectMovement(hObject, handles, options, typeIdentifiers)
                     im2bw(differenceImage(:,:,2), bwThreshold) | ...
                     im2bw(differenceImage(:,:,3), bwThreshold));
     
-    differenceImgBW = medfilt2(differenceImgBW);
+    %differenceImgBW = medfilt2(differenceImgBW);
     se = strel('square', 5);
-    differenceImgBW = imclose(differenceImgBW, se);
     transformedImage = bwareaopen(differenceImgBW, options(3));
+    transformedImage = imclose(transformedImage, se);
     transformedImage = imfill(transformedImage, 'holes');
     
     regionProperties = regionprops('table',transformedImage,...
