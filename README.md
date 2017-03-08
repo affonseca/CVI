@@ -1,6 +1,7 @@
 # CVI
 
-Two project for the course of Interactive Visual Comunication
+Two project for the course of Interactive Visual Comunication.
+
 
 1st project - Identifies coins in an image and calculates their monetary value based on their properties.
 
